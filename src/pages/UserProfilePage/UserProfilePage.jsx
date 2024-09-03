@@ -101,6 +101,7 @@ function UserProfilePage(props) {
             </div>
             <div>
                 <button onClick={handleDefaultImgChangeOnClick}>기본 이미지로 변경</button>
+                <button>확인</button>
             </div>
         </div>
     );
