@@ -1,6 +1,7 @@
 import { css } from '@emotion/react';
 import React, { useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { oauth2MergeApi, oauth2SignupApi } from '../../apis/oauth2Api';
 /** @jsxImportSource @emotion/react */
 
 const layout = css`
@@ -156,16 +157,43 @@ function OAuth2JoinPage(props) {
         }));
     }
 
-    
-
-    // 가입버튼 누를 시에 
-    const handleJoinSubmitOnClick = async () => {
+    const handleMergeSubmitOnClick = async () => {
         const mergeUser = {
             username: inputUser.username,
             password: inputUser.password,
             oauth2Name: searchParams.get("oAuth2Name"), // oAuth 로 하지 않는 이유는 JSON이 oA를 oa로 인식하기 때문에 일부러 소문자로 해줌
             provider: searchParams.get("provider"),
         }
+        const mergeData = await oauth2MergeApi(mergeUser);
+        if (!mergeData.isSuccess) {
+            if (mergeData.errorStatus === "loginError") {
+                alert(mergeData.error);
+                return;
+            }
+            if (mergeData.errorStatus === "fieldError") {
+                showFieldErrorMessage(mergeData.error);
+                return;
+            }
+        }
+        alert("계정 통합이 완료되었습니다.");
+        navigate("/user/login");
+    }
+
+    // 가입버튼 누를 시에 
+    const handleJoinSubmitOnClick = async () => {
+        const joinUser = {
+            ...inputUser,
+            oauth2Name: searchParams.get("oAuth2Name"),
+            provider: searchParams.get("provider")
+        }
+        const joinData = await oauth2SignupApi(joinUser);
+        if (!joinData.isSuccess) {
+            showFieldErrorMessage(joinData.fieldErrors);
+            return;
+        }
+        alert("회원가입이 완료되었습니다.");
+        navigate("/user/login");
+        
     }
 
     const showFieldErrorMessage = (fieldErrors) => {
@@ -215,7 +243,7 @@ function OAuth2JoinPage(props) {
                             {fieldErrorMessages.password}
                         </div>      
                     </div>
-                    <button css={joinButton} onClick={handleJoinSubmitOnClick} >통합하기</button>
+                    <button css={joinButton} onClick={handleMergeSubmitOnClick} >통합하기</button>
                 </>
             :
                 <>
